@@ -1,8 +1,27 @@
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import LoginButton from '../components/LoginButton';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+
+  // 如果已經登入，檢查是否有待處理的預約
+  useEffect(() => {
+    if (isAuthenticated()) {
+      const pendingBooking = localStorage.getItem('pendingBooking');
+      if (pendingBooking) {
+        localStorage.removeItem('pendingBooking');
+        router.push(`/booking?serviceId=${pendingBooking}`);
+      } else {
+        router.push('/');
+      }
+    }
+  }, [isAuthenticated, router]);
+
   return (
     <>
       <Head>

@@ -1,20 +1,28 @@
-// 第三方登入按鈕組件 - 未來整合 NextAuth.js
+// 第三方登入按鈕組件
+import { signIn } from 'next-auth/react';
 
 export default function LoginButton() {
   const handleGoogleLogin = () => {
-    // TODO: 整合 Google OAuth 2.0
-    console.log('Google Login - 待實作');
-    alert('Google 登入功能開發中');
+    signIn('google', { callbackUrl: '/' });
   };
 
   const handleLineLogin = () => {
     // TODO: 整合 LINE Login API
     console.log('LINE Login - 待實作');
-    alert('LINE 登入功能開發中');
+    alert('LINE 登入功能開發中\n\n第三方登入（LINE）即將推出！');
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      {/* 提示訊息 */}
+      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+        <p className="text-sm text-yellow-800">
+          <strong>🔒 需要登入才能預約</strong><br />
+          為了防止惡意預約和爽約，保障所有客戶的權益，我們要求登入後才能使用預約功能。
+        </p>
+      </div>
+
+      <div className="space-y-3">
       {/* Google Login Button */}
       <button
         onClick={handleGoogleLogin}
@@ -52,8 +60,6 @@ export default function LoginButton() {
         使用 LINE 登入
       </button>
 
-      <div className="text-center text-sm text-gray-500 mt-4">
-        或繼續使用訪客身份預約
       </div>
     </div>
   );

@@ -2,20 +2,27 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { services } from '../data/services';
-import { stylists, generateTimeSlots } from '../data/stylists';
+import { serviceService } from '../lib/services/service.service';
+import { stylistService } from '../lib/services/stylist.service';
+import { bookingService } from '../lib/services/booking.service';
 import StylistCard from '../components/StylistCard';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Booking() {
   const router = useRouter();
   const { serviceId } = router.query;
+  const { user, isAuthenticated } = useAuth();
 
   const [step, setStep] = useState(1);
+  const [services, setServices] = useState([]);
+  const [stylists, setStylists] = useState([]);
   const [selectedService, setSelectedService] = useState(null);
   const [selectedStylist, setSelectedStylist] = useState(null);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [timeSlots, setTimeSlots] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     phone: '',
@@ -23,23 +30,89 @@ export default function Booking() {
     notes: ''
   });
 
+  // 檢查登入狀態
   useEffect(() => {
-    if (serviceId) {
-      const service = services.find(s => s.id === parseInt(serviceId));
-      setSelectedService(service);
+    if (!isAuthenticated()) {
+      // 保存當前嘗試預約的服務ID
+      if (serviceId) {
+        localStorage.setItem('pendingBooking', serviceId);
+      }
+      router.push('/login');
     }
-  }, [serviceId]);
+  }, [isAuthenticated, router, serviceId]);
+
+  // 從用戶資料自動填入
+  useEffect(() => {
+    if (user) {
+      setCustomerInfo({
+        name: user.name || '',
+        phone: user.phone || '',
+        email: user.email || '',
+        notes: ''
+      });
+    }
+  }, [user]);
 
   useEffect(() => {
-    if (selectedDate) {
-      setTimeSlots(generateTimeSlots());
+    if (isAuthenticated()) {
+      fetchInitialData();
     }
-  }, [selectedDate]);
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (serviceId && services.length > 0) {
+      const service = services.find(s => s.id === parseInt(serviceId));
+      if (service) {
+        setSelectedService(service);
+      }
+    }
+  }, [serviceId, services]);
+
+  useEffect(() => {
+    if (selectedDate && selectedStylist && selectedService) {
+      generateAvailableTimeSlots();
+    }
+  }, [selectedDate, selectedStylist, selectedService]);
+
+  const fetchInitialData = async () => {
+    try {
+      setLoading(true);
+      const [servicesData, stylistsData] = await Promise.all([
+        serviceService.getAll(),
+        stylistService.getAll(),
+      ]);
+      setServices(servicesData.filter(s => s.is_active));
+      setStylists(stylistsData.filter(s => s.is_active));
+    } catch (err) {
+      console.error('Failed to fetch data:', err);
+      alert('載入資料失敗，請重新整理頁面');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateAvailableTimeSlots = async () => {
+    if (!selectedService) {
+      setTimeSlots([]);
+      return;
+    }
+
+    try {
+      // Call backend API to get available slots
+      const slots = await stylistService.getAvailableSlots(
+        selectedStylist,
+        selectedDate,
+        selectedService.duration
+      );
+      setTimeSlots(slots);
+    } catch (err) {
+      console.error('Failed to fetch available slots:', err);
+      setTimeSlots([]);
+    }
+  };
 
   const filteredStylists = selectedService
-    ? stylists.filter(stylist =>
-        stylist.specialty.includes(selectedService.category)
-      )
+    ? stylists.filter(stylist => stylist.specialty?.includes(selectedService.category) || true)
     : stylists;
 
   const handleNext = () => {
@@ -60,25 +133,41 @@ export default function Booking() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!customerInfo.name || !customerInfo.phone) {
       alert('請填寫必填資訊');
       return;
     }
 
-    const booking = {
-      service: selectedService,
-      stylist: stylists.find(s => s.id === selectedStylist),
-      date: selectedDate,
-      time: selectedTime,
-      customer: customerInfo
-    };
+    try {
+      setSubmitting(true);
 
-    router.push({
-      pathname: '/confirmation',
-      query: { data: JSON.stringify(booking) }
-    });
+      // Format booking data for API
+      const bookingData = {
+        service_id: selectedService.id,
+        stylist_id: selectedStylist,
+        booking_date: selectedDate,
+        booking_time: selectedTime,
+        customer_name: customerInfo.name,
+        customer_phone: customerInfo.phone,
+        customer_email: customerInfo.email || '',
+        notes: customerInfo.notes || '',
+      };
+
+      const result = await bookingService.create(bookingData);
+
+      // Navigate to confirmation with booking ID
+      router.push({
+        pathname: '/confirmation',
+        query: { bookingId: result.id }
+      });
+    } catch (err) {
+      console.error('Failed to create booking:', err);
+      alert(err.response?.data?.error || '預約失敗，請稍後再試');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const getMinDate = () => {
@@ -91,6 +180,17 @@ export default function Booking() {
     const maxDate = new Date(today.setDate(today.getDate() + 30));
     return maxDate.toISOString().split('T')[0];
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">載入中...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -145,9 +245,15 @@ export default function Booking() {
                         : 'hover:border-primary-300'
                     }`}
                   >
-                    <div className="text-6xl mb-4 text-center">{service.image}</div>
+                    {service.image_url ? (
+                      <div className="mb-4 h-32 bg-gray-100 rounded-lg overflow-hidden">
+                        <img src={service.image_url} alt={service.name} className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="text-6xl mb-4 text-center">💆‍♀️</div>
+                    )}
                     <h3 className="text-xl font-bold mb-2">{service.name}</h3>
-                    <p className="text-gray-600 text-sm mb-4">{service.description}</p>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{service.description}</p>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-500 text-sm">⏱️ {service.duration} 分鐘</span>
                       <span className="text-primary-600 font-bold">NT$ {service.price}</span>
@@ -185,7 +291,10 @@ export default function Booking() {
                   <input
                     type="date"
                     value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedDate(e.target.value);
+                      setSelectedTime(''); // Reset time when date changes
+                    }}
                     min={getMinDate()}
                     max={getMaxDate()}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -195,24 +304,28 @@ export default function Booking() {
                 {selectedDate && (
                   <div className="card">
                     <label className="block text-lg font-semibold mb-3 text-gray-700">選擇時間</label>
-                    <div className="grid grid-cols-4 gap-3">
-                      {timeSlots.map((slot, index) => (
-                        <button
-                          key={index}
-                          onClick={() => slot.available && setSelectedTime(slot.time)}
-                          disabled={!slot.available}
-                          className={`py-3 rounded-lg font-medium transition-all duration-200 ${
-                            selectedTime === slot.time
-                              ? 'bg-primary-500 text-white shadow-lg'
-                              : slot.available
-                              ? 'bg-white border border-gray-300 hover:bg-primary-100'
-                              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                          }`}
-                        >
-                          {slot.time}
-                        </button>
-                      ))}
-                    </div>
+                    {timeSlots.length === 0 ? (
+                      <p className="text-gray-600 text-center py-8">此設計師當天休息，請選擇其他日期</p>
+                    ) : (
+                      <div className="grid grid-cols-4 gap-3">
+                        {timeSlots.map((slot, index) => (
+                          <button
+                            key={index}
+                            onClick={() => slot.available && setSelectedTime(slot.time)}
+                            disabled={!slot.available}
+                            className={`py-3 rounded-lg font-medium transition-all duration-200 ${
+                              selectedTime === slot.time
+                                ? 'bg-primary-500 text-white shadow-lg'
+                                : slot.available
+                                ? 'bg-white border border-gray-300 hover:bg-primary-100'
+                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            }`}
+                          >
+                            {slot.time}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -278,14 +391,16 @@ export default function Booking() {
                     type="button"
                     onClick={() => setStep(step - 1)}
                     className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-3 rounded-lg font-medium transition-colors"
+                    disabled={submitting}
                   >
                     上一步
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 btn-primary"
+                    className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={submitting}
                   >
-                    確認預約
+                    {submitting ? '處理中...' : '確認預約'}
                   </button>
                 </div>
               </form>

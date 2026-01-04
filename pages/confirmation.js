@@ -2,32 +2,79 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
+import { bookingService } from '../lib/services/booking.service';
 
 export default function Confirmation() {
   const router = useRouter();
+  const { bookingId } = router.query;
   const [booking, setBooking] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    if (router.query.data) {
-      try {
-        const data = JSON.parse(router.query.data);
-        setBooking(data);
-      } catch (error) {
-        console.error('Error parsing booking data:', error);
-      }
+    if (bookingId) {
+      fetchBooking();
     }
-  }, [router.query.data]);
+  }, [bookingId]);
 
-  if (!booking) {
+  const fetchBooking = async () => {
+    try {
+      setLoading(true);
+      const data = await bookingService.getById(parseInt(bookingId));
+      setBooking(data);
+      setError('');
+    } catch (err) {
+      console.error('Failed to fetch booking:', err);
+      setError('載入預約資料失敗');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4">⏳</div>
-          <p className="text-gray-600">載入中...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">載入中...</p>
         </div>
       </div>
     );
   }
+
+  if (error || !booking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">❌</div>
+          <p className="text-gray-600 mb-4">{error || '找不到預約資料'}</p>
+          <Link href="/">
+            <button className="btn-primary">返回首頁</button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const getStatusColor = (status) => {
+    const colors = {
+      pending: 'text-yellow-600 bg-yellow-50 border-yellow-200',
+      confirmed: 'text-green-600 bg-green-50 border-green-200',
+      completed: 'text-blue-600 bg-blue-50 border-blue-200',
+      cancelled: 'text-red-600 bg-red-50 border-red-200',
+    };
+    return colors[status] || colors.pending;
+  };
+
+  const getStatusText = (status) => {
+    const texts = {
+      pending: '待確認',
+      confirmed: '已確認',
+      completed: '已完成',
+      cancelled: '已取消',
+    };
+    return texts[status] || status;
+  };
 
   return (
     <>
@@ -55,6 +102,9 @@ export default function Confirmation() {
               </div>
               <h1 className="text-3xl font-bold text-gray-800 mb-2">預約成功！</h1>
               <p className="text-gray-600">我們已收到您的預約，期待為您服務</p>
+              <div className={`inline-block mt-4 px-4 py-2 rounded-lg border-2 font-semibold ${getStatusColor(booking.status)}`}>
+                {getStatusText(booking.status)}
+              </div>
             </div>
 
             {/* Booking Details */}
@@ -64,8 +114,15 @@ export default function Confirmation() {
               </div>
 
               <div className="space-y-4">
+                {/* Service Info */}
                 <div className="flex items-start gap-4 p-4 bg-primary-50 rounded-lg">
-                  <div className="text-4xl">{booking.service.image}</div>
+                  {booking.service.image_url ? (
+                    <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                      <img src={booking.service.image_url} alt={booking.service.name} className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="text-4xl flex-shrink-0">💆‍♀️</div>
+                  )}
                   <div className="flex-1">
                     <h3 className="font-bold text-lg text-gray-800">{booking.service.name}</h3>
                     <p className="text-sm text-gray-600 mt-1">{booking.service.description}</p>
@@ -76,42 +133,58 @@ export default function Confirmation() {
                   </div>
                 </div>
 
+                {/* Stylist Info */}
                 <div className="flex items-start gap-4 p-4 bg-secondary-50 rounded-lg">
-                  <div className="text-4xl">{booking.stylist.image}</div>
+                  {booking.stylist.avatar ? (
+                    <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                      <img src={booking.stylist.avatar} alt={booking.stylist.name} className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="text-4xl flex-shrink-0">👨‍🎨</div>
+                  )}
                   <div className="flex-1">
                     <h3 className="font-bold text-lg text-gray-800">{booking.stylist.name}</h3>
                     <p className="text-sm text-gray-600 mt-1">{booking.stylist.description}</p>
-                    <div className="flex gap-3 mt-2 text-sm text-gray-600">
-                      <span>⭐ {booking.stylist.rating}</span>
-                      <span>經驗 {booking.stylist.experience} 年</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <div className="text-sm text-gray-600 mb-1">預約日期</div>
-                    <div className="font-bold text-gray-800">📅 {booking.date}</div>
-                  </div>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <div className="text-sm text-gray-600 mb-1">預約時間</div>
-                    <div className="font-bold text-gray-800">🕐 {booking.time}</div>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <h3 className="font-bold text-gray-800 mb-2">聯絡資訊</h3>
-                  <div className="space-y-1 text-sm text-gray-700">
-                    <p>👤 姓名：{booking.customer.name}</p>
-                    <p>📱 電話：{booking.customer.phone}</p>
-                    {booking.customer.email && <p>📧 信箱：{booking.customer.email}</p>}
-                    {booking.customer.notes && (
-                      <div className="mt-2">
-                        <p className="font-semibold">備註：</p>
-                        <p className="text-gray-600 mt-1">{booking.customer.notes}</p>
+                    {booking.stylist.experience > 0 && (
+                      <div className="text-sm text-gray-600 mt-2">
+                        <span>經驗 {booking.stylist.experience} 年</span>
                       </div>
                     )}
                   </div>
+                </div>
+
+                {/* Date & Time */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="text-sm text-gray-600 mb-1">預約日期</div>
+                    <div className="font-bold text-gray-800">📅 {booking.booking_date}</div>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <div className="text-sm text-gray-600 mb-1">預約時間</div>
+                    <div className="font-bold text-gray-800">🕐 {booking.booking_time}</div>
+                  </div>
+                </div>
+
+                {/* Customer Info */}
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h3 className="font-bold text-gray-800 mb-2">聯絡資訊</h3>
+                  <div className="space-y-1 text-sm text-gray-700">
+                    <p>👤 姓名：{booking.customer_name}</p>
+                    <p>📱 電話：{booking.customer_phone}</p>
+                    {booking.customer_email && <p>📧 信箱：{booking.customer_email}</p>}
+                    {booking.notes && (
+                      <div className="mt-2">
+                        <p className="font-semibold">備註：</p>
+                        <p className="text-gray-600 mt-1">{booking.notes}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Booking ID */}
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="text-sm text-gray-600 mb-1">預約編號</div>
+                  <div className="font-mono font-bold text-gray-800">#{booking.id}</div>
                 </div>
               </div>
 

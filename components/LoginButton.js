@@ -1,9 +1,19 @@
 // 第三方登入按鈕組件
-import { signIn } from 'next-auth/react';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://f82cb2me3v.ap-northeast-1.awsapprunner.com';
 
 export default function LoginButton() {
-  const handleGoogleLogin = () => {
-    signIn('google', { callbackUrl: '/' });
+  const handleGoogleLogin = async () => {
+    try {
+      // 從後端取得 Google OAuth URL
+      const response = await fetch(`${API_URL}/api/v1/auth/google/login`);
+      const data = await response.json();
+
+      // 重定向到 Google OAuth 頁面
+      window.location.href = data.url;
+    } catch (error) {
+      console.error('Failed to initiate Google login:', error);
+      alert('登入失敗，請稍後再試');
+    }
   };
 
   const handleLineLogin = () => {

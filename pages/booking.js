@@ -95,14 +95,14 @@ export default function Booking() {
   return (
     <>
       <Head>
-        <title>預約服務 - 美麗沙龍</title>
+        <title>預約服務 - 琳達髮廊</title>
       </Head>
 
       <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
         <header className="bg-white shadow-md">
           <div className="container mx-auto px-4 py-6">
             <Link href="/" className="text-2xl font-bold text-primary-600 hover:text-primary-700">
-              ← 美麗沙龍
+              ← 琳達髮廊
             </Link>
           </div>
         </header>

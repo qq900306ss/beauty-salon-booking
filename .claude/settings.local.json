@@ -44,7 +44,10 @@
       "Bash(node:*)",
       "Bash(taskkill //F //PID 22212)",
       "Bash(npx tsc:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(tasklist:*)",
+      "Bash(binapi.exe:*)",
+      "Bash(.binapi.exe)"
     ]
   }
 }

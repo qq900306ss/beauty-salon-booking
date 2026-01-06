@@ -1,42 +1,79 @@
 // 第三方登入按鈕組件
+import { useState } from 'react';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://f82cb2me3v.ap-northeast-1.awsapprunner.com';
 
 export default function LoginButton() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [provider, setProvider] = useState(null); // 'google' or 'line'
+
   const handleGoogleLogin = async () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    setProvider('google');
+
     try {
       // 從後端取得 Google OAuth URL 和 state
       const response = await fetch(`${API_URL}/api/v1/auth/google/login`);
+
+      if (!response.ok) {
+        throw new Error('Failed to get Google login URL');
+      }
+
       const data = await response.json();
 
-      // 將 state 存到 sessionStorage 供 callback 驗證用
-      if (data.state) {
-        sessionStorage.setItem('oauth_state', data.state);
+      // 驗證回應格式
+      if (!data.url || !data.state) {
+        throw new Error('Invalid response from server');
       }
+
+      // 將 state 存到 sessionStorage 供 callback 驗證用
+      sessionStorage.setItem('oauth_state', data.state);
+      sessionStorage.setItem('oauth_provider', 'google');
 
       // 重定向到 Google OAuth 頁面
       window.location.href = data.url;
     } catch (error) {
       console.error('Failed to initiate Google login:', error);
-      alert('登入失敗，請稍後再試');
+      alert('Google 登入失敗，請稍後再試');
+      setIsLoading(false);
+      setProvider(null);
     }
   };
 
   const handleLineLogin = async () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    setProvider('line');
+
     try {
       // 從後端取得 LINE OAuth URL 和 state
       const response = await fetch(`${API_URL}/api/v1/auth/line/login`);
+
+      if (!response.ok) {
+        throw new Error('Failed to get LINE login URL');
+      }
+
       const data = await response.json();
 
-      // 將 state 存到 sessionStorage 供 callback 驗證用
-      if (data.state) {
-        sessionStorage.setItem('oauth_state', data.state);
+      // 驗證回應格式
+      if (!data.url || !data.state) {
+        throw new Error('Invalid response from server');
       }
+
+      // 將 state 存到 sessionStorage 供 callback 驗證用
+      sessionStorage.setItem('oauth_state', data.state);
+      sessionStorage.setItem('oauth_provider', 'line');
 
       // 重定向到 LINE OAuth 頁面
       window.location.href = data.url;
     } catch (error) {
       console.error('Failed to initiate LINE login:', error);
-      alert('登入失敗，請稍後再試');
+      alert('LINE 登入失敗，請稍後再試');
+      setIsLoading(false);
+      setProvider(null);
     }
   };
 
@@ -54,7 +91,12 @@ export default function LoginButton() {
       {/* Google Login Button */}
       <button
         onClick={handleGoogleLogin}
-        className="w-full flex items-center justify-center gap-3 bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-700 px-6 py-3 rounded-lg font-medium transition-all shadow-md hover:shadow-lg"
+        disabled={isLoading}
+        className={`w-full flex items-center justify-center gap-3 px-6 py-3 rounded-lg font-medium transition-all shadow-md ${
+          isLoading && provider === 'google'
+            ? 'bg-gray-200 border-2 border-gray-300 text-gray-500 cursor-not-allowed'
+            : 'bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-700 hover:shadow-lg'
+        }`}
       >
         <svg className="w-5 h-5" viewBox="0 0 24 24">
           <path
@@ -74,18 +116,39 @@ export default function LoginButton() {
             d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
           />
         </svg>
-        使用 Google 登入
+        {isLoading && provider === 'google' ? (
+          <>
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-600"></div>
+            <span>登入中...</span>
+          </>
+        ) : (
+          '使用 Google 登入'
+        )}
       </button>
 
       {/* LINE Login Button */}
       <button
         onClick={handleLineLogin}
-        className="w-full flex items-center justify-center gap-3 bg-[#06C755] hover:bg-[#05b34c] text-white px-6 py-3 rounded-lg font-medium transition-all shadow-md hover:shadow-lg"
+        disabled={isLoading}
+        className={`w-full flex items-center justify-center gap-3 px-6 py-3 rounded-lg font-medium transition-all shadow-md ${
+          isLoading && provider === 'line'
+            ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+            : 'bg-[#06C755] hover:bg-[#05b34c] text-white hover:shadow-lg'
+        }`}
       >
-        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="white">
-          <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" />
-        </svg>
-        使用 LINE 登入
+        {isLoading && provider === 'line' ? (
+          <>
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+            <span>登入中...</span>
+          </>
+        ) : (
+          <>
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="white">
+              <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" />
+            </svg>
+            使用 LINE 登入
+          </>
+        )}
       </button>
 
       </div>

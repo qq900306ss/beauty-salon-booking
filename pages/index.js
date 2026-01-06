@@ -1,20 +1,30 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { serviceService } from '../lib/services/service.service';
 import ServiceCard from '../components/ServiceCard';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Home() {
-  const { user, logout } = useAuth();
+  const router = useRouter();
+  const { user, login, logout } = useAuth();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   useEffect(() => {
+    // 檢查是否從 OAuth callback 返回
+    if (router.query.login === 'success') {
+      // 重新取得用戶資訊
+      login();
+      // 清除 URL 參數
+      router.replace('/', undefined, { shallow: true });
+    }
+
     fetchServices();
-  }, []);
+  }, [router.query]);
 
   const fetchServices = async () => {
     try {

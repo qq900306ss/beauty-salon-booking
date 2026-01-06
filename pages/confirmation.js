@@ -114,23 +114,34 @@ export default function Confirmation() {
               </div>
 
               <div className="space-y-4">
-                {/* Service Info */}
-                <div className="flex items-start gap-4 p-4 bg-primary-50 rounded-lg">
-                  {booking.service.image_url ? (
-                    <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                      <img src={booking.service.image_url} alt={booking.service.name} className="w-full h-full object-cover" />
+                {/* Services Info */}
+                <div className="p-4 bg-primary-50 rounded-lg">
+                  <h3 className="font-bold text-lg text-gray-800 mb-3">預約服務</h3>
+                  {booking.services && booking.services.length > 0 ? (
+                    <div className="space-y-3">
+                      {booking.services.map((service, idx) => (
+                        <div key={idx} className="flex items-start gap-4">
+                          <div className="text-2xl flex-shrink-0">💆‍♀️</div>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-800">{service.name}</h4>
+                            <div className="flex gap-4 mt-1 text-sm text-gray-600">
+                              <span>⏱️ {service.duration} 分鐘</span>
+                              <span className="font-bold text-primary-600">NT$ {service.price}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="border-t border-primary-200 pt-3 mt-3 flex justify-between font-bold">
+                        <span>總計</span>
+                        <div className="text-right">
+                          <div className="text-primary-600">NT$ {booking.price}</div>
+                          <div className="text-sm text-gray-600">共 {booking.duration} 分鐘</div>
+                        </div>
+                      </div>
                     </div>
                   ) : (
-                    <div className="text-4xl flex-shrink-0">💆‍♀️</div>
+                    <p className="text-gray-500">沒有服務資訊</p>
                   )}
-                  <div className="flex-1">
-                    <h3 className="font-bold text-lg text-gray-800">{booking.service.name}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{booking.service.description}</p>
-                    <div className="flex gap-4 mt-2 text-sm text-gray-600">
-                      <span>⏱️ {booking.service.duration} 分鐘</span>
-                      <span className="font-bold text-primary-600">NT$ {booking.service.price}</span>
-                    </div>
-                  </div>
                 </div>
 
                 {/* Stylist Info */}

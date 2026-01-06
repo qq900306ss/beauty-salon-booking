@@ -4,9 +4,14 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://f82cb2me3v.ap-northe
 export default function LoginButton() {
   const handleGoogleLogin = async () => {
     try {
-      // 從後端取得 Google OAuth URL
+      // 從後端取得 Google OAuth URL 和 state
       const response = await fetch(`${API_URL}/api/v1/auth/google/login`);
       const data = await response.json();
+
+      // 將 state 存到 sessionStorage 供 callback 驗證用
+      if (data.state) {
+        sessionStorage.setItem('oauth_state', data.state);
+      }
 
       // 重定向到 Google OAuth 頁面
       window.location.href = data.url;
@@ -16,10 +21,23 @@ export default function LoginButton() {
     }
   };
 
-  const handleLineLogin = () => {
-    // TODO: 整合 LINE Login API
-    console.log('LINE Login - 待實作');
-    alert('LINE 登入功能開發中\n\n第三方登入（LINE）即將推出！');
+  const handleLineLogin = async () => {
+    try {
+      // 從後端取得 LINE OAuth URL 和 state
+      const response = await fetch(`${API_URL}/api/v1/auth/line/login`);
+      const data = await response.json();
+
+      // 將 state 存到 sessionStorage 供 callback 驗證用
+      if (data.state) {
+        sessionStorage.setItem('oauth_state', data.state);
+      }
+
+      // 重定向到 LINE OAuth 頁面
+      window.location.href = data.url;
+    } catch (error) {
+      console.error('Failed to initiate LINE login:', error);
+      alert('登入失敗，請稍後再試');
+    }
   };
 
   return (

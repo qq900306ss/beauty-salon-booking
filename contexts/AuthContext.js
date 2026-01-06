@@ -37,12 +37,20 @@ export function AuthProvider({ children }) {
     fetchCurrentUser();
   };
 
-  const logout = () => {
-    // Clear cookies by calling backend logout endpoint
-    document.cookie = 'access_token=; Max-Age=0; path=/';
-    document.cookie = 'refresh_token=; Max-Age=0; path=/';
-    setUser(null);
-    window.location.href = '/';
+  const logout = async () => {
+    try {
+      // Call backend logout endpoint to clear HTTP-only cookies
+      await fetch(`${API_URL}/api/v1/auth/logout`, {
+        method: 'POST',
+        credentials: 'include', // 重要：發送 cookies
+      });
+    } catch (error) {
+      console.error('Logout request failed:', error);
+    } finally {
+      // Clear user state and redirect regardless of API result
+      setUser(null);
+      window.location.href = '/';
+    }
   };
 
   const isAuthenticated = () => {

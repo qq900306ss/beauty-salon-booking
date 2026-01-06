@@ -16,7 +16,7 @@ export default function Booking() {
   const [step, setStep] = useState(1);
   const [services, setServices] = useState([]);
   const [stylists, setStylists] = useState([]);
-  const [selectedService, setSelectedService] = useState(null);
+  const [selectedServices, setSelectedServices] = useState([]); // 改為陣列支援多選
   const [selectedStylist, setSelectedStylist] = useState(null);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
@@ -63,16 +63,16 @@ export default function Booking() {
     if (serviceId && services.length > 0) {
       const service = services.find(s => s.id === parseInt(serviceId));
       if (service) {
-        setSelectedService(service);
+        setSelectedServices([service]); // 改為陣列
       }
     }
   }, [serviceId, services]);
 
   useEffect(() => {
-    if (selectedDate && selectedStylist && selectedService) {
+    if (selectedDate && selectedStylist && selectedServices.length > 0) {
       generateAvailableTimeSlots();
     }
-  }, [selectedDate, selectedStylist, selectedService]);
+  }, [selectedDate, selectedStylist, selectedServices]);
 
   const fetchInitialData = async () => {
     try {
@@ -92,32 +92,55 @@ export default function Booking() {
   };
 
   const generateAvailableTimeSlots = async () => {
-    if (!selectedService) {
+    if (selectedServices.length === 0) {
       setTimeSlots([]);
       return;
     }
+
+    // 計算所有服務的總時長
+    const totalDuration = selectedServices.reduce((sum, service) => sum + service.duration, 0);
 
     try {
       // Call backend API to get available slots
       const slots = await stylistService.getAvailableSlots(
         selectedStylist,
         selectedDate,
-        selectedService.duration
+        totalDuration
       );
-      setTimeSlots(slots);
+
+      // 過濾掉已經過去的時間
+      const now = new Date();
+      const selectedDateObj = new Date(selectedDate);
+      const isToday = selectedDateObj.toDateString() === now.toDateString();
+
+      let filteredSlots = slots;
+      if (isToday) {
+        const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        filteredSlots = slots.map(slot => {
+          // 如果時間已經過去，標記為不可用
+          if (slot.time <= currentTime) {
+            return { ...slot, available: false };
+          }
+          return slot;
+        });
+      }
+
+      setTimeSlots(filteredSlots);
     } catch (err) {
       console.error('Failed to fetch available slots:', err);
       setTimeSlots([]);
     }
   };
 
-  const filteredStylists = selectedService
-    ? stylists.filter(stylist => stylist.specialty?.includes(selectedService.category) || true)
-    : stylists;
+  const filteredStylists = stylists;
+
+  // 計算總價格和總時長
+  const getTotalPrice = () => selectedServices.reduce((sum, service) => sum + service.price, 0);
+  const getTotalDuration = () => selectedServices.reduce((sum, service) => sum + service.duration, 0);
 
   const handleNext = () => {
-    if (step === 1 && !selectedService) {
-      alert('請選擇服務項目');
+    if (step === 1 && selectedServices.length === 0) {
+      alert('請至少選擇一項服務');
       return;
     }
     if (step === 2 && !selectedStylist) {
@@ -135,8 +158,8 @@ export default function Booking() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!customerInfo.name || !customerInfo.phone) {
-      alert('請填寫必填資訊');
+    if (!customerInfo.name) {
+      alert('請填寫姓名');
       return;
     }
 
@@ -145,13 +168,10 @@ export default function Booking() {
 
       // Format booking data for API
       const bookingData = {
-        service_id: selectedService.id,
+        service_ids: selectedServices.map(s => s.id), // 改為陣列
         stylist_id: selectedStylist,
-        booking_date: selectedDate,
-        booking_time: selectedTime,
-        customer_name: customerInfo.name,
-        customer_phone: customerInfo.phone,
-        customer_email: customerInfo.email || '',
+        date: selectedDate,
+        start_time: selectedTime,
         notes: customerInfo.notes || '',
       };
 
@@ -233,34 +253,74 @@ export default function Booking() {
           {/* Step 1: Select Service */}
           {step === 1 && (
             <div>
-              <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">選擇服務項目</h2>
+              <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">選擇服務項目（可多選）</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-                {services.map(service => (
-                  <div
-                    key={service.id}
-                    onClick={() => setSelectedService(service)}
-                    className={`card cursor-pointer transition-all duration-200 ${
-                      selectedService?.id === service.id
-                        ? 'border-primary-500 border-2 bg-primary-50'
-                        : 'hover:border-primary-300'
-                    }`}
-                  >
-                    {service.image_url ? (
-                      <div className="mb-4 h-32 bg-gray-100 rounded-lg overflow-hidden">
-                        <img src={service.image_url} alt={service.name} className="w-full h-full object-cover" />
+                {services.map(service => {
+                  const isSelected = selectedServices.some(s => s.id === service.id);
+                  return (
+                    <div
+                      key={service.id}
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedServices(selectedServices.filter(s => s.id !== service.id));
+                        } else {
+                          setSelectedServices([...selectedServices, service]);
+                        }
+                      }}
+                      className={`card cursor-pointer transition-all duration-200 relative ${
+                        isSelected
+                          ? 'border-primary-500 border-2 bg-primary-50'
+                          : 'hover:border-primary-300'
+                      }`}
+                    >
+                      {/* Checkbox indicator */}
+                      <div className={`absolute top-4 right-4 w-6 h-6 rounded border-2 flex items-center justify-center ${
+                        isSelected ? 'bg-primary-500 border-primary-500' : 'bg-white border-gray-300'
+                      }`}>
+                        {isSelected && <span className="text-white text-sm">✓</span>}
                       </div>
-                    ) : (
-                      <div className="text-6xl mb-4 text-center">💆‍♀️</div>
-                    )}
-                    <h3 className="text-xl font-bold mb-2">{service.name}</h3>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{service.description}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-500 text-sm">⏱️ {service.duration} 分鐘</span>
-                      <span className="text-primary-600 font-bold">NT$ {service.price}</span>
+
+                      {service.image_url ? (
+                        <div className="mb-4 h-32 bg-gray-100 rounded-lg overflow-hidden">
+                          <img src={service.image_url} alt={service.name} className="w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className="text-6xl mb-4 text-center">💆‍♀️</div>
+                      )}
+                      <h3 className="text-xl font-bold mb-2">{service.name}</h3>
+                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">{service.description}</p>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-500 text-sm">⏱️ {service.duration} 分鐘</span>
+                        <span className="text-primary-600 font-bold">NT$ {service.price}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* 顯示已選服務的總計 */}
+              {selectedServices.length > 0 && (
+                <div className="mt-8 max-w-2xl mx-auto">
+                  <div className="card bg-primary-50 border-primary-200">
+                    <h3 className="text-lg font-bold mb-3">已選服務</h3>
+                    <div className="space-y-2 mb-4">
+                      {selectedServices.map(service => (
+                        <div key={service.id} className="flex justify-between text-sm">
+                          <span>{service.name}</span>
+                          <span className="text-gray-600">NT$ {service.price} / {service.duration} 分鐘</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="border-t border-primary-300 pt-3 flex justify-between font-bold text-lg">
+                      <span>總計</span>
+                      <div className="text-right">
+                        <div className="text-primary-600">NT$ {getTotalPrice()}</div>
+                        <div className="text-sm text-gray-600">共 {getTotalDuration()} 分鐘</div>
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -352,15 +412,12 @@ export default function Booking() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold mb-2 text-gray-700">
-                      電話 <span className="text-red-500">*</span>
-                    </label>
+                    <label className="block text-sm font-semibold mb-2 text-gray-700">電話</label>
                     <input
                       type="tel"
                       value={customerInfo.phone}
                       onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      required
                     />
                   </div>
 

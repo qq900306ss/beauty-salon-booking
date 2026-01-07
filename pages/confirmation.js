@@ -3,10 +3,13 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import { bookingService } from '../lib/services/booking.service';
+import Header from '../components/Header';
+import { useBranding } from '../hooks/useBranding';
 
 export default function Confirmation() {
   const router = useRouter();
   const { bookingId } = router.query;
+  const { branding } = useBranding();
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -79,17 +82,11 @@ export default function Confirmation() {
   return (
     <>
       <Head>
-        <title>預約確認 - 琳達髮廊</title>
+        <title>預約確認 - {branding.name}</title>
       </Head>
 
       <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
-        <header className="bg-white shadow-md">
-          <div className="container mx-auto px-4 py-6">
-            <Link href="/" className="text-2xl font-bold text-primary-600 hover:text-primary-700">
-              琳達髮廊
-            </Link>
-          </div>
-        </header>
+        <Header />
 
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-2xl mx-auto">

@@ -5,10 +5,13 @@ import { useRouter } from 'next/router';
 import { serviceService } from '../lib/services/service.service';
 import ServiceCard from '../components/ServiceCard';
 import { useAuth } from '../contexts/AuthContext';
+import Header from '../components/Header';
+import { useBranding } from '../hooks/useBranding';
 
 export default function Home() {
   const router = useRouter();
   const { user, login, logout } = useAuth();
+  const { branding } = useBranding();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -54,48 +57,19 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>琳達髮廊 - 專業美容預約系統</title>
-        <meta name="description" content="提供專業的美容美髮服務" />
+        <title>{branding.name} - 專業美容預約系統</title>
+        <meta name="description" content={branding.description} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
       <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
         {/* Header */}
-        <header className="bg-white shadow-md">
-          <div className="container mx-auto px-4 py-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-primary-600">✨ 琳達髮廊</h1>
-                <p className="text-gray-600 mt-1">讓美麗成為習慣</p>
-              </div>
-              {user ? (
-                <div className="flex items-center gap-4">
-                  <span className="text-gray-700">👋 {user.name || user.email}</span>
-                  <button
-                    onClick={logout}
-                    className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors"
-                  >
-                    登出
-                  </button>
-                </div>
-              ) : (
-                <Link href="/login">
-                  <button className="flex items-center gap-2 bg-white border-2 border-primary-500 text-primary-600 hover:bg-primary-50 px-4 py-2 rounded-lg font-medium transition-colors">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <span className="hidden sm:inline">會員登入</span>
-                  </button>
-                </Link>
-              )}
-            </div>
-          </div>
-        </header>
+        <Header />
 
         {/* Hero Section */}
         <section className="container mx-auto px-4 py-12 text-center">
           <h2 className="text-4xl font-bold text-gray-800 mb-4">
-            歡迎來到琳達髮廊
+            歡迎來到 {branding.name}
           </h2>
           <p className="text-xl text-gray-600 mb-8">
             提供最專業的美容美髮服務，讓您煥然一新

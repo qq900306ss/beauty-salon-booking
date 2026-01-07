@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import Link from 'next/link';
 import { serviceService } from '../lib/services/service.service';
 import { stylistService } from '../lib/services/stylist.service';
 import { bookingService } from '../lib/services/booking.service';
 import StylistCard from '../components/StylistCard';
 import { useAuth } from '../contexts/AuthContext';
+import Header from '../components/Header';
+import { useBranding } from '../hooks/useBranding';
 
 export default function Booking() {
   const router = useRouter();
   const { serviceId } = router.query;
   const { user, isAuthenticated } = useAuth();
+  const { branding } = useBranding();
 
   const [step, setStep] = useState(1);
   const [services, setServices] = useState([]);
@@ -218,17 +220,11 @@ export default function Booking() {
   return (
     <>
       <Head>
-        <title>預約服務 - 琳達髮廊</title>
+        <title>預約服務 - {branding.name}</title>
       </Head>
 
       <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
-        <header className="bg-white shadow-md">
-          <div className="container mx-auto px-4 py-6">
-            <Link href="/" className="text-2xl font-bold text-primary-600 hover:text-primary-700">
-              ← 琳達髮廊
-            </Link>
-          </div>
-        </header>
+        <Header />
 
         <div className="container mx-auto px-4 py-12">
           {/* Progress Steps */}

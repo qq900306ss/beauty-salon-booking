@@ -173,6 +173,9 @@ export default function Booking() {
         date: selectedDate,
         start_time: selectedTime,
         notes: customerInfo.notes || '',
+        customer_name: customerInfo.name || '',
+        customer_phone: customerInfo.phone || '',
+        customer_email: customerInfo.email || '',
       };
 
       const result = await bookingService.create(bookingData);

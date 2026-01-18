@@ -67,46 +67,47 @@ export default function Home() {
         <Header />
 
         {/* Hero Section */}
-        <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-          <div className="absolute inset-0 z-0">
-            <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-primary-100/30 to-transparent" />
-            <div className="absolute bottom-0 left-0 w-1/2 h-full bg-gradient-to-r from-stone-200/30 to-transparent" />
+        {/* Hero Section */}
+        <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-gradient-ethereal">
+          <div className="absolute inset-0 z-0 pointer-events-none">
+            {/* Ethereal Abstract Shapes - Light Mode */}
+            <div className="absolute -top-40 -right-40 w-2/3 h-2/3 bg-primary-200/20 blur-[100px] rounded-full opacity-60 animate-pulse-slow mix-blend-multiply" />
+            <div className="absolute -bottom-40 -left-40 w-2/3 h-2/3 bg-rose-200/20 blur-[120px] rounded-full opacity-40 animate-float mix-blend-multiply" />
           </div>
 
           <div className="container mx-auto px-4 relative z-10 text-center">
-            <span className="inline-block py-1 px-3 rounded-full bg-primary-100 text-primary-700 text-sm font-medium tracking-widest uppercase mb-6 animate-fade-in-up">
-              Premium Beauty Services
+            <span className="inline-block py-1 px-4 rounded-full bg-white/40 border border-white/60 text-secondary-600 text-xs font-bold tracking-[0.3em] uppercase mb-8 backdrop-blur-md animate-fade-in-up shadow-sm">
+              Premium Beauty & Wellness
             </span>
-            <h2 className="text-5xl md:text-7xl font-serif font-bold text-secondary-800 mb-6 leading-tight animate-fade-in-up animation-delay-200">
-              歡迎來到 <span className="text-primary-600">{branding.name}</span>
+            <h2 className="text-5xl md:text-8xl font-serif font-bold text-secondary-800 mb-8 leading-tight tracking-tight animate-fade-in-up animation-delay-200 drop-shadow-sm">
+              <span className="block text-secondary-500 text-2xl md:text-3xl mb-4 font-light italic tracking-normal">Welcome to</span>
+              <span className="text-shadow-glow text-primary-700">{branding.name}</span>
             </h2>
-            <p className="text-xl md:text-2xl text-secondary-500 mb-10 max-w-2xl mx-auto font-light leading-relaxed animate-fade-in-up animation-delay-400">
-              提供最專業的美容美髮服務，為您打造獨一無二的迷人風采
+            <p className="text-lg md:text-xl text-secondary-600 mb-12 max-w-2xl mx-auto font-light leading-relaxed tracking-wide animate-fade-in-up animation-delay-400">
+              探索極致美學，在光影流動中綻放您的獨特風采
             </p>
-            <div className="flex justify-center gap-4 animate-fade-in-up animation-delay-400">
+            <div className="flex justify-center gap-6 animate-fade-in-up animation-delay-400">
               <button
                 onClick={() => document.getElementById('services').scrollIntoView({ behavior: 'smooth' })}
-                className="btn-primary"
+                className="btn-primary relative overflow-hidden group shadow-xl hover:shadow-2xl"
               >
-                立即預約
-              </button>
-              <button className="btn-secondary">
-                了解更多
+                <span className="relative z-10">立即預約</span>
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none" />
               </button>
             </div>
           </div>
         </section>
 
         {/* Category Filter */}
-        <section id="services" className="container mx-auto px-4 mb-12">
-          <div className="flex flex-wrap gap-4 justify-center mb-12">
+        <section id="services" className="container mx-auto px-4 mb-20 relative z-10">
+          <div className="flex flex-wrap gap-4 justify-center">
             {categories.map(category => (
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`px-8 py-3 rounded-full font-medium transition-all duration-300 text-sm tracking-wide ${selectedCategory === category.id
-                    ? 'bg-secondary-800 text-white shadow-lg transform -translate-y-1'
-                    : 'bg-white text-secondary-500 hover:bg-stone-50 hover:text-secondary-800 border border-stone-200 hover:border-secondary-300'
+                className={`px-8 py-3 rounded-full font-bold transition-all duration-300 text-xs tracking-[0.15em] uppercase backdrop-blur-md shadow-sm ${selectedCategory === category.id
+                  ? 'bg-primary-500 text-white shadow-lg transform scale-105'
+                  : 'bg-white/60 text-secondary-500 border border-stone-100 hover:border-primary-200 hover:text-primary-600 hover:bg-white'
                   }`}
               >
                 {category.name}

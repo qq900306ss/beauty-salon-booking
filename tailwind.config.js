@@ -35,8 +35,29 @@ module.exports = {
           700: '#4f4f4f',
           800: '#454545',
           900: '#3d3d3d',
+        },
+        ethereal: {
+          dark: '#0c0a09', // Warm Black
+          surface: '#1c1917', // Deep Stone
+          accent: '#e7a1b0', // Muted Rose Glow
         }
-      }
+      },
+      boxShadow: {
+        'ethereal': '0 20px 50px -12px rgba(0, 0, 0, 0.7)',
+        'glow': '0 0 20px rgba(231, 161, 176, 0.15)',
+        'neon': '0 0 10px rgba(255, 255, 255, 0.1), 0 0 20px rgba(255, 255, 255, 0.05)',
+        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+      },
+      animation: {
+        'float': 'float 6s ease-in-out infinite',
+        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      },
+      keyframes: {
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-20px)' },
+        }
+      },
     },
   },
   plugins: [],

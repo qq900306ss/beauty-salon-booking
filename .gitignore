@@ -37,3 +37,4 @@ next-env.d.ts
 amplify/
 .amplifyrc
 amplify-*
+*.csv

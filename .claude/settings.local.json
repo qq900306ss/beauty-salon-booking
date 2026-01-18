@@ -47,7 +47,16 @@
       "Bash(taskkill:*)",
       "Bash(tasklist:*)",
       "Bash(binapi.exe:*)",
-      "Bash(.binapi.exe)"
+      "Bash(.binapi.exe)",
+      "Bash(timeout:*)",
+      "Bash(git checkout:*)",
+      "Bash(python:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm ci:*)",
+      "Bash(tee:*)",
+      "Bash(npx:*)",
+      "Bash(grep:*)",
+      "Bash(git ls-tree:*)"
     ]
   }
 }

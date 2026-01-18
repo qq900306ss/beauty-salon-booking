@@ -223,265 +223,330 @@ export default function Booking() {
         <title>預約服務 - {branding.name}</title>
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">
+      <div className="min-h-screen bg-stone-50">
         <Header />
 
-        <div className="container mx-auto px-4 py-12">
+        <div className="container mx-auto px-4 py-12 lg:py-16">
           {/* Progress Steps */}
           <div className="mb-12">
-            <div className="flex justify-center items-center gap-4">
-              {[1, 2, 3, 4].map(num => (
-                <div key={num} className="flex items-center">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                    step >= num ? 'bg-primary-500 text-white' : 'bg-gray-300 text-gray-600'
-                  }`}>
-                    {num}
+            <div className="flex justify-center items-center max-w-3xl mx-auto">
+              {[1, 2, 3, 4].map((num, index) => (
+                <div key={num} className="flex items-center w-full last:w-auto">
+                  <div className="relative flex flex-col items-center">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center font-serif font-bold text-lg transition-all duration-500 z-10 ${step >= num
+                        ? 'bg-primary-500 text-white shadow-lg scale-110'
+                        : 'bg-white text-secondary-300 border-2 border-secondary-200'
+                      }`}>
+                      {num}
+                    </div>
+                    <span className={`absolute top-14 whitespace-nowrap text-xs font-bold tracking-wider uppercase transition-colors duration-300 ${step === num ? 'text-primary-600' : 'text-secondary-400'
+                      }`}>
+                      {num === 1 && '選擇服務'}
+                      {num === 2 && '選擇設計師'}
+                      {num === 3 && '選擇時間'}
+                      {num === 4 && '填寫資訊'}
+                    </span>
                   </div>
-                  {num < 4 && <div className={`w-16 h-1 ${step > num ? 'bg-primary-500' : 'bg-gray-300'}`} />}
+                  {index < 3 && (
+                    <div className={`flex-1 h-0.5 mx-4 transition-all duration-500 ${step > num ? 'bg-primary-300' : 'bg-secondary-200'
+                      }`} />
+                  )}
                 </div>
               ))}
             </div>
-            <div className="flex justify-center gap-20 mt-2 text-sm text-gray-600">
-              <span className={step === 1 ? 'font-bold text-primary-600' : ''}>選擇服務</span>
-              <span className={step === 2 ? 'font-bold text-primary-600' : ''}>選擇設計師</span>
-              <span className={step === 3 ? 'font-bold text-primary-600' : ''}>選擇時間</span>
-              <span className={step === 4 ? 'font-bold text-primary-600' : ''}>填寫資訊</span>
-            </div>
           </div>
 
-          {/* Step 1: Select Service */}
-          {step === 1 && (
-            <div>
-              <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">選擇服務項目（可多選）</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-                {services.map(service => {
-                  const isSelected = selectedServices.some(s => s.id === service.id);
-                  return (
-                    <div
-                      key={service.id}
-                      onClick={() => {
-                        if (isSelected) {
-                          setSelectedServices(selectedServices.filter(s => s.id !== service.id));
-                        } else {
-                          setSelectedServices([...selectedServices, service]);
-                        }
-                      }}
-                      className={`card cursor-pointer transition-all duration-200 relative ${
-                        isSelected
-                          ? 'border-primary-500 border-2 bg-primary-50'
-                          : 'hover:border-primary-300'
-                      }`}
-                    >
-                      {/* Checkbox indicator */}
-                      <div className={`absolute top-4 right-4 w-6 h-6 rounded border-2 flex items-center justify-center ${
-                        isSelected ? 'bg-primary-500 border-primary-500' : 'bg-white border-gray-300'
-                      }`}>
-                        {isSelected && <span className="text-white text-sm">✓</span>}
-                      </div>
-
-                      {service.image_url ? (
-                        <div className="mb-4 h-32 bg-gray-100 rounded-lg overflow-hidden">
-                          <img src={service.image_url} alt={service.name} className="w-full h-full object-cover" />
+          <div className="mt-20">
+            {/* Step 1: Select Service */}
+            {step === 1 && (
+              <div>
+                <h2 className="text-3xl font-serif font-bold text-secondary-800 mb-2 text-center">選擇服務項目</h2>
+                <p className="text-secondary-500 text-center mb-10">請選擇您想要體驗的服務（可多選）</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 hover:gap-6">
+                  {services.map(service => {
+                    const isSelected = selectedServices.some(s => s.id === service.id);
+                    return (
+                      <div
+                        key={service.id}
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedServices(selectedServices.filter(s => s.id !== service.id));
+                          } else {
+                            setSelectedServices([...selectedServices, service]);
+                          }
+                        }}
+                        className={`group cursor-pointer transition-all duration-300 relative rounded-2xl overflow-hidden border ${isSelected
+                            ? 'bg-white ring-2 ring-primary-400 border-transparent shadow-xl transform -translate-y-1'
+                            : 'bg-white border-stone-200 hover:border-primary-200 hover:shadow-lg hover:-translate-y-1'
+                          }`}
+                      >
+                        {/* Checkbox indicator */}
+                        <div className={`absolute top-4 right-4 z-10 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${isSelected ? 'bg-primary-500 border-primary-500 scale-110' : 'bg-white/80 border-stone-300 backdrop-blur-sm'
+                          }`}>
+                          {isSelected && <span className="text-white text-xs">✓</span>}
                         </div>
-                      ) : (
-                        <div className="text-6xl mb-4 text-center">💆‍♀️</div>
-                      )}
-                      <h3 className="text-xl font-bold mb-2">{service.name}</h3>
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">{service.description}</p>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-500 text-sm">⏱️ {service.duration} 分鐘</span>
-                        <span className="text-primary-600 font-bold">NT$ {service.price}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
 
-              {/* 顯示已選服務的總計 */}
-              {selectedServices.length > 0 && (
-                <div className="mt-8 max-w-2xl mx-auto">
-                  <div className="card bg-primary-50 border-primary-200">
-                    <h3 className="text-lg font-bold mb-3">已選服務</h3>
-                    <div className="space-y-2 mb-4">
-                      {selectedServices.map(service => (
-                        <div key={service.id} className="flex justify-between text-sm">
-                          <span>{service.name}</span>
-                          <span className="text-gray-600">NT$ {service.price} / {service.duration} 分鐘</span>
+                        {service.image_url ? (
+                          <div className="h-40 overflow-hidden relative">
+                            <img
+                              src={service.image_url}
+                              alt={service.name}
+                              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            />
+                            <div className={`absolute inset-0 bg-primary-900/10 transition-opacity duration-300 ${isSelected ? 'opacity-20' : 'opacity-0'}`} />
+                          </div>
+                        ) : (
+                          <div className="h-40 bg-stone-50 flex items-center justify-center text-5xl">💆‍♀️</div>
+                        )}
+                        <div className="p-5">
+                          <h3 className="text-lg font-serif font-bold mb-2 text-secondary-800">{service.name}</h3>
+                          <div className="flex justify-between items-end mt-4">
+                            <span className="text-secondary-500 text-sm bg-stone-100 px-2 py-1 rounded-md">
+                              ⏱️ {service.duration} min
+                            </span>
+                            <span className="text-primary-600 font-bold text-lg">
+                              NT$ {service.price}
+                            </span>
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                    <div className="border-t border-primary-300 pt-3 flex justify-between font-bold text-lg">
-                      <span>總計</span>
-                      <div className="text-right">
-                        <div className="text-primary-600">NT$ {getTotalPrice()}</div>
-                        <div className="text-sm text-gray-600">共 {getTotalDuration()} 分鐘</div>
                       </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Step 2: Select Stylist */}
-          {step === 2 && (
-            <div>
-              <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">選擇設計師</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                {filteredStylists.map(stylist => (
-                  <StylistCard
-                    key={stylist.id}
-                    stylist={stylist}
-                    selected={selectedStylist === stylist.id}
-                    onSelect={setSelectedStylist}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Step 3: Select Date & Time */}
-          {step === 3 && (
-            <div>
-              <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">選擇日期與時間</h2>
-              <div className="max-w-2xl mx-auto">
-                <div className="card mb-6">
-                  <label className="block text-lg font-semibold mb-3 text-gray-700">選擇日期</label>
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => {
-                      setSelectedDate(e.target.value);
-                      setSelectedTime(''); // Reset time when date changes
-                    }}
-                    min={getMinDate()}
-                    max={getMaxDate()}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  />
+                    );
+                  })}
                 </div>
 
-                {selectedDate && (
-                  <div className="card">
-                    <label className="block text-lg font-semibold mb-3 text-gray-700">選擇時間</label>
-                    {timeSlots.length === 0 ? (
-                      <p className="text-gray-600 text-center py-8">此設計師當天休息，請選擇其他日期</p>
-                    ) : (
-                      <div className="grid grid-cols-4 gap-3">
-                        {timeSlots.map((slot, index) => (
-                          <button
-                            key={index}
-                            onClick={() => slot.available && setSelectedTime(slot.time)}
-                            disabled={!slot.available}
-                            className={`py-3 rounded-lg font-medium transition-all duration-200 ${
-                              selectedTime === slot.time
-                                ? 'bg-primary-500 text-white shadow-lg'
-                                : slot.available
-                                ? 'bg-white border border-gray-300 hover:bg-primary-100'
-                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                            }`}
-                          >
-                            {slot.time}
-                          </button>
-                        ))}
+                {/* 顯示已選服務的總計 - Fixed Bottom Bar */}
+                {selectedServices.length > 0 && (
+                  <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-stone-200 shadow-[0_-5px_20px_rgba(0,0,0,0.05)] p-4 z-40 animate-slide-up">
+                    <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+                      <div className="text-center sm:text-left">
+                        <div className="text-sm text-secondary-500 mb-1">已選擇 {selectedServices.length} 項服務</div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-2xl font-serif font-bold text-secondary-800">NT$ {getTotalPrice()}</span>
+                          <span className="text-secondary-400 text-sm">/ {getTotalDuration()} 分鐘</span>
+                        </div>
                       </div>
-                    )}
+                      <button
+                        onClick={handleNext}
+                        className="btn-primary w-full sm:w-auto min-w-[200px]"
+                      >
+                        下一步
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Step 4: Customer Info */}
-          {step === 4 && (
-            <div>
-              <h2 className="text-3xl font-bold text-gray-800 mb-8 text-center">填寫聯絡資訊</h2>
-              <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
-                <div className="card space-y-6">
-                  <div>
-                    <label className="block text-sm font-semibold mb-2 text-gray-700">
-                      姓名 <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={customerInfo.name}
-                      onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      required
+            {/* Step 2: Select Stylist */}
+            {step === 2 && (
+              <div>
+                <h2 className="text-3xl font-serif font-bold text-secondary-800 mb-2 text-center">選擇設計師</h2>
+                <p className="text-secondary-500 text-center mb-10">選擇您信賴的專屬設計師</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                  {filteredStylists.map(stylist => (
+                    <StylistCard
+                      key={stylist.id}
+                      stylist={stylist}
+                      selected={selectedStylist === stylist.id}
+                      onSelect={setSelectedStylist}
                     />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Select Date & Time */}
+            {step === 3 && (
+              <div>
+                <h2 className="text-3xl font-serif font-bold text-secondary-800 mb-2 text-center">選擇日期與時間</h2>
+                <p className="text-secondary-500 text-center mb-10">預約您方便的時段</p>
+                <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8">
+                  <div className="col-span-1 md:col-span-5">
+                    <div className="card h-full">
+                      <label className="block text-lg font-serif font-bold mb-4 text-secondary-800">選擇日期</label>
+                      <input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => {
+                          setSelectedDate(e.target.value);
+                          setSelectedTime('');
+                        }}
+                        min={getMinDate()}
+                        max={getMaxDate()}
+                        className="input-field cursor-pointer"
+                      />
+                      <div className="mt-4 text-sm text-secondary-500 leading-relaxed">
+                        <p>• 請選擇未來 30 天內的日期</p>
+                        <p>• 若當日無法預約，請嘗試其他日期</p>
+                      </div>
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold mb-2 text-gray-700">電話</label>
-                    <input
-                      type="tel"
-                      value={customerInfo.phone}
-                      onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold mb-2 text-gray-700">電子郵件</label>
-                    <input
-                      type="email"
-                      value={customerInfo.email}
-                      onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold mb-2 text-gray-700">備註</label>
-                    <textarea
-                      value={customerInfo.notes}
-                      onChange={(e) => setCustomerInfo({...customerInfo, notes: e.target.value})}
-                      rows="4"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      placeholder="有任何特殊需求或問題嗎？"
-                    />
+                  <div className="col-span-1 md:col-span-7">
+                    {selectedDate ? (
+                      <div className="card h-full min-h-[300px]">
+                        <label className="block text-lg font-serif font-bold mb-4 text-secondary-800">
+                          {selectedDate} 的可預約時段
+                        </label>
+                        {timeSlots.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center h-48 text-secondary-400">
+                            <div className="text-4xl mb-2">😴</div>
+                            <p>此設計師當天休息或已額滿</p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                            {timeSlots.map((slot, index) => (
+                              <button
+                                key={index}
+                                onClick={() => slot.available && setSelectedTime(slot.time)}
+                                disabled={!slot.available}
+                                className={`py-2 rounded-lg text-sm font-medium transition-all duration-200 ${selectedTime === slot.time
+                                    ? 'bg-primary-500 text-white shadow-md transform scale-105'
+                                    : slot.available
+                                      ? 'bg-stone-50 text-secondary-600 hover:bg-primary-50 hover:text-primary-600 border border-stone-100'
+                                      : 'bg-stone-100 text-stone-300 cursor-not-allowed decoration-slice'
+                                  }`}
+                              >
+                                {slot.time}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="card h-full flex flex-col items-center justify-center text-secondary-400 min-h-[300px]">
+                        <span className="text-6xl mb-4 opacity-20">📅</span>
+                        <p>請先選擇左側日期</p>
+                      </div>
+                    )}
                   </div>
                 </div>
+              </div>
+            )}
 
-                <div className="flex gap-4 mt-8">
-                  <button
-                    type="button"
-                    onClick={() => setStep(step - 1)}
-                    className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-3 rounded-lg font-medium transition-colors"
-                    disabled={submitting}
-                  >
-                    上一步
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={submitting}
-                  >
-                    {submitting ? '處理中...' : '確認預約'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
+            {/* Step 4: Customer Info */}
+            {step === 4 && (
+              <div>
+                <h2 className="text-3xl font-serif font-bold text-secondary-800 mb-2 text-center">填寫聯絡資訊</h2>
+                <p className="text-secondary-500 text-center mb-10">最後一步！請確認您的預約資訊</p>
+                <form onSubmit={handleSubmit} className="max-w-2xl mx-auto">
+                  <div className="card space-y-6 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-bold mb-2 text-secondary-700">
+                          姓名 <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={customerInfo.name}
+                          onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })}
+                          className="input-field"
+                          placeholder="例如：王小美"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold mb-2 text-secondary-700">電話</label>
+                        <input
+                          type="tel"
+                          value={customerInfo.phone}
+                          onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
+                          className="input-field"
+                          placeholder="例如：0912345678"
+                        />
+                      </div>
+                    </div>
 
-          {/* Navigation Buttons */}
-          {step < 4 && (
-            <div className="flex gap-4 max-w-2xl mx-auto mt-8">
-              {step > 1 && (
+                    <div>
+                      <label className="block text-sm font-bold mb-2 text-secondary-700">電子郵件</label>
+                      <input
+                        type="email"
+                        value={customerInfo.email}
+                        onChange={(e) => setCustomerInfo({ ...customerInfo, email: e.target.value })}
+                        className="input-field"
+                        placeholder="例如：example@email.com"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold mb-2 text-secondary-700">備註</label>
+                      <textarea
+                        value={customerInfo.notes}
+                        onChange={(e) => setCustomerInfo({ ...customerInfo, notes: e.target.value })}
+                        rows="4"
+                        className="input-field resize-none"
+                        placeholder="有任何特殊需求或問題嗎？（選填）"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-primary-50 rounded-xl p-6 border border-primary-100 mb-8">
+                    <h4 className="font-bold text-primary-800 mb-4 flex items-center gap-2">
+                      <span className="text-xl">📝</span> 預約摘要
+                    </h4>
+                    <div className="space-y-2 text-sm text-secondary-600">
+                      <div className="flex justify-between">
+                        <span>預約日期：</span>
+                        <span className="font-bold text-secondary-800">{selectedDate} {selectedTime}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>設計師：</span>
+                        <span className="font-bold text-secondary-800">{filteredStylists.find(s => s.id === selectedStylist)?.name}</span>
+                      </div>
+                      <div className="border-t border-primary-200 my-2 pt-2">
+                        {selectedServices.map(s => (
+                          <div key={s.id} className="flex justify-between mb-1">
+                            <span>{s.name}</span>
+                            <span>NT$ {s.price}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex justify-between font-bold text-lg text-primary-700 pt-2 border-t-2 border-primary-200">
+                        <span>總計</span>
+                        <span>NT$ {getTotalPrice()}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setStep(step - 1)}
+                      className="flex-1 btn-secondary"
+                      disabled={submitting}
+                    >
+                      上一步
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                      disabled={submitting}
+                    >
+                      {submitting ? '處理中...' : '確認預約'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* Navigation Buttons for Step 2 & 3 */}
+            {(step === 2 || step === 3) && (
+              <div className="flex justify-center gap-4 max-w-2xl mx-auto mt-12">
                 <button
                   onClick={() => setStep(step - 1)}
-                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-3 rounded-lg font-medium transition-colors"
+                  className="btn-secondary w-32"
                 >
                   上一步
                 </button>
-              )}
-              <button
-                onClick={handleNext}
-                className="flex-1 btn-primary"
-              >
-                下一步
-              </button>
-            </div>
-          )}
+                <button
+                  onClick={handleNext}
+                  className="btn-primary w-32"
+                >
+                  下一步
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </>

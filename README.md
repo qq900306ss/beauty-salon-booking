@@ -1,6 +1,10 @@
 # Linda Salon — 質感美學沙龍預約網站
 
-以 Next.js 14（App Router）打造的高質感美容沙龍預約網站，首頁採用 React Three Fiber 全螢幕 3D 動畫（珍珠光澤流動球體、粉彩光暈、滑鼠視差），搭配 Framer Motion 捲動動畫，支援靜態輸出部署至 S3 + CloudFront。
+🔗 **線上展示:https://d1mfjxqwxt860l.cloudfront.net**
+
+> 整套系統:本預約網站 + [管理後台](https://github.com/qq900306ss/linda-salon-admin)([線上展示](https://d3arpt1ou620zv.cloudfront.net/login/))+ [Go Serverless API](https://github.com/qq900306ss/linda-salon-api)(AWS Lambda + DynamoDB,全套月費約 $0–1 美元)
+
+以 Next.js 14(App Router)打造的高質感美容沙龍預約網站，首頁採用 React Three Fiber 全螢幕 3D 動畫（珍珠光澤流動球體、粉彩光暈、滑鼠視差），搭配 Framer Motion 捲動動畫，支援靜態輸出部署至 S3 + CloudFront。
 
 ## 技術棧
 

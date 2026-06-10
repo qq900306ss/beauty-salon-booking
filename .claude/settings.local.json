@@ -56,7 +56,10 @@
       "Bash(tee:*)",
       "Bash(npx:*)",
       "Bash(grep:*)",
-      "Bash(git ls-tree:*)"
+      "Bash(git ls-tree:*)",
+      "Bash(ls:*)",
+      "Bash(where.exe opencode)",
+      "Bash(powershell:*)"
     ]
   }
 }

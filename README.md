@@ -1,87 +1,68 @@
-# 琳達髮廊預約系統 (Linda Hair Salon Booking)
+# Linda Salon — 質感美學沙龍預約網站
 
-一個現代化的美容院線上預約系統，專為手機端優化設計。
-
-## 功能特色
-
-- 📱 手機端優化的響應式設計
-- 💇‍♀️ 多種美容服務選擇（服務項目將從後台 API 取得）
-- 👨‍💼 專業設計師團隊介紹
-- 📅 即時預約系統
-- ⏰ 彈性時間選擇
-- ✅ 預約確認與詳情查看
+以 Next.js 14（App Router）打造的高質感美容沙龍預約網站，首頁採用 React Three Fiber 全螢幕 3D 動畫（珍珠光澤流動球體、粉彩光暈、滑鼠視差），搭配 Framer Motion 捲動動畫，支援靜態輸出部署至 S3 + CloudFront。
 
 ## 技術棧
 
-- **框架**: Next.js 14
-- **樣式**: Tailwind CSS
-- **部署**: AWS Amplify
-- **語言**: JavaScript/React
+- **Next.js 14**（App Router、`output: 'export'` 靜態輸出）+ TypeScript
+- **Tailwind CSS** — 奶油色 / 腮紅粉底色 + 玫瑰金點綴的訂製色票
+- **three + @react-three/fiber + @react-three/drei** — 3D 場景（皆以 `next/dynamic` 關閉 SSR 動態載入）
+- **framer-motion** — 捲動進場、步驟轉場、磁吸按鈕等動畫
+- **lucide-react** — 圖示
+- 字體：Noto Serif TC（標題）+ Noto Sans TC（內文），由 `next/font/google` 載入
 
-## 本地開發
+## 頁面
 
-1. 安裝依賴：
+| 路徑 | 說明 |
+| --- | --- |
+| `/` | 3D 主視覺、服務項目、設計師團隊、關於我們 |
+| `/booking/` | 五步驟線上預約（服務 → 設計師 → 日期時段 → 資料 → 確認），支援 `?serviceId=` 預選 |
+| `/lookup/` | 以電話查詢預約紀錄（時間軸卡片 + 狀態標籤） |
+
+## 開發環境
+
 ```bash
+# 1. 安裝相依套件
 npm install
-```
 
-2. 啟動開發伺服器：
-```bash
+# 2. 設定環境變數
+cp .env.local.example .env.local
+# 編輯 .env.local，設定後端 API 位址
+
+# 3. 啟動開發伺服器
 npm run dev
 ```
 
-3. 在瀏覽器中打開 [http://localhost:3000](http://localhost:3000)
+### 環境變數
 
-## 專案結構
+| 變數 | 說明 | 預設值 |
+| --- | --- | --- |
+| `NEXT_PUBLIC_API_URL` | 後端 API 位址（不含結尾斜線） | `http://localhost:4000` |
 
-```
-beauty-salon-booking/
-├── pages/              # Next.js 頁面
-│   ├── index.js       # 首頁 - 服務展示
-│   ├── booking.js     # 預約頁面 - 多步驟預約流程
-│   └── confirmation.js # 預約確認頁面
-├── components/         # React 元件
-│   ├── ServiceCard.js # 服務卡片元件
-│   └── StylistCard.js # 設計師卡片元件
-├── data/              # 模擬資料
-│   ├── services.js    # 服務項目資料
-│   └── stylists.js    # 設計師資料
-├── styles/            # 全域樣式
-│   └── globals.css    # Tailwind CSS 配置
-└── public/            # 靜態資源
+## 建置與部署
+
+```bash
+npm run build        # 靜態輸出至 out/
+npm run typecheck    # TypeScript 檢查
 ```
 
-## 預約流程
+建置完成後，`out/` 目錄即為完整靜態網站，可直接上傳至 S3 並透過 CloudFront 提供服務。
 
-1. **選擇服務** - 從後台提供的服務項目中選擇
-2. **選擇設計師** - 根據專長選擇適合的設計師
-3. **選擇時間** - 選擇預約日期與時段
-4. **填寫資訊** - 輸入聯絡資訊完成預約
+> 完整的 AWS（S3 + CloudFront）部署流程，請參考後端 API 儲存庫中的 **AWS-DEPLOYMENT-GUIDE.md**。
 
-## 資料來源
+部署重點：
 
-- **服務項目**: 將從後台 API 動態取得（目前使用假資料）
-- **設計師資料**: 將從後台 API 動態取得（目前使用假資料）
-- **預約時段**: 將從後台 API 取得可用時段（目前使用假資料）
+1. 將 `out/` 內容同步至 S3 bucket（例：`aws s3 sync out/ s3://<bucket> --delete`）
+2. CloudFront 指向該 bucket，並設定預設根文件 `index.html`
+3. 因啟用 `trailingSlash: true`，子頁面輸出為 `booking/index.html` 等目錄形式，CloudFront 建議搭配 CloudFront Function 將 `/path/` 重寫為 `/path/index.html`
+4. 建置時請以 `NEXT_PUBLIC_API_URL` 指向正式 API 網域
 
-## 部署到 AWS Amplify
+## API 介接
 
-1. 將專案推送到 GitHub
-2. 登入 AWS Amplify Console
-3. 選擇「New app」→「Host web app」
-4. 連接 GitHub repository
-5. 設定建置設定（自動偵測 Next.js）
-6. 部署
+所有 API 回應皆為 `{ success, data }` / `{ success: false, error: { code, message } }` 信封格式，由 `lib/api.ts` 集中解包：
 
-## 未來規劃
-
-- [ ] 串接真實 API
-- [ ] 用戶登入系統
-- [ ] 預約管理功能
-- [ ] 推播通知
-- [ ] 會員積分系統
-- [ ] 線上付款整合
-
-## 授權
-
-MIT License
+- `GET /api/services` — 服務項目
+- `GET /api/stylists` — 設計師
+- `GET /api/timeslots?stylistId=&date=YYYY-MM-DD&serviceId=` — 可預約時段
+- `POST /api/bookings` — 建立預約（免登入）
+- `GET /api/bookings/lookup?phone=` — 以電話查詢預約

@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-cream-50 text-cocoa-700 font-body antialiased;
+}
+
+::selection {
+  @apply bg-rosegold-300/40 text-cocoa-800;
+}
+
+/* Elegant thin scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-rosegold-300/60 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-rosegold-400;
+}
+
+@layer components {
+  .gold-gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(
+      115deg,
+      #b76e79 0%,
+      #d9a8a0 35%,
+      #e8c8b8 50%,
+      #d9a8a0 65%,
+      #b76e79 100%
+    );
+    background-size: 200% auto;
+  }
+
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(183, 110, 121, 0.35),
+      transparent
+    );
+  }
+
+  .card-shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .card-shine::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 40%,
+      rgba(255, 255, 255, 0.55) 50%,
+      transparent 60%
+    );
+    transform: translateX(-110%);
+    transition: transform 0.7s ease;
+    pointer-events: none;
+  }
+  .card-shine:hover::after {
+    transform: translateX(110%);
+  }
+
+  .frosted {
+    @apply bg-cream-50/80 backdrop-blur-md;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
